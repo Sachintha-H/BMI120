@@ -24,7 +24,7 @@ I created this library after purchasing a sensor from AliExpress that was listed
 1. Download the library as a ZIP file from the repository.  
 2. In the Arduino IDE, navigate to **Sketch > Include Library > Add .ZIP Library...**  
 3. Select the downloaded ZIP file to install.  
-4. Examples are available in **File > Examples > BMI120**.  
+4. Examples are available in **>>test**.  
 
 ---
 
