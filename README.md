@@ -15,7 +15,6 @@ I created this library after purchasing a sensor from AliExpress that was listed
 - **Unified Interface:** Use the same functions to read sensor data for both protocols.  
 - **Easy Initialization:** Simple `begin()` methods to get you started quickly.  
 - **Configurable Ranges:** Adjust accelerometer and gyroscope measurement ranges.  
-- **Calibrated Data:** Provides sensor data in m/s² and °/s.  
 - **Example Sketches:** Includes clear examples for both I2C and SPI.  
 
 ---
