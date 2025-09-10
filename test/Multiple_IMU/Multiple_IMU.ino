@@ -2,96 +2,89 @@
 #include <SPI.h>
 #include "BMI120.h"
 
+// --- Configuration ---
+// I2C Configuration
+const uint8_t I2C_ADDR = BMI120_I2C_ADDR_SECONDARY; // 0x69
 
-const int CS_PIN_1 = D3; 
-const int CS_PIN_2 = D7; 
+// SPI Configuration
+const int CS_PIN_1 = 3;  // CS for first SPI IMU
+const int CS_PIN_2 = 7;  // CS for second SPI IMU
 
-// --- Sensor Object Creation ---
-// 1. Create an instance for the I2C IMU.
-BMI120 imuI2C; 
-
-// 2. Create an instance for the first SPI IMU.
-BMI120 imuSPI1(CS_PIN_1);
-
-// 3. Create an instance for the second SPI IMU.
-BMI120 imuSPI2(CS_PIN_2);
-
+// --- Sensor Objects ---
+BMI120 imu_i2c;          // For I2C
+BMI120 imu_spi1(CS_PIN_1); // For first SPI sensor
+BMI120 imu_spi2(CS_PIN_2); // For second SPI sensor
 
 void setup() {
   Serial.begin(115200);
-  while (!Serial); 
+  while (!Serial);
+  Serial.println("Multiple BMI120 IMU Example");
 
-  Serial.println("Multiple BMI120 IMU Example (I2C & SPI)");
-  Serial.println("----------------------------------------");
-
-  // --- Initialize I2C IMU ---
-  if (imuI2C.begin()) {
-    Serial.println("I2C IMU initialization successful!");
+  // Initialize I2C IMU
+  if (imu_i2c.begin(I2C_ADDR)) {
+    Serial.println("I2C IMU initialized successfully.");
+    imu_i2c.setAccelRange(RANGE_4G);
+    imu_i2c.setGyroRange(RANGE_1000DPS);
+    Serial.println("I2C IMU ranges set to 4G and 1000dps.");
   } else {
-    Serial.println("I2C IMU initialization failed. Check wiring and address.");
-  }
-  
-  // --- Initialize First SPI IMU ---
-  if (imuSPI1.beginSPI()) {
-    Serial.println("SPI IMU #1 (Pin D3) initialization successful!");
-  } else {
-    Serial.println("SPI IMU #1 (Pin D3) initialization failed. Check wiring.");
+    Serial.println("I2C IMU initialization failed!");
   }
 
-  // --- Initialize Second SPI IMU ---
-  if (imuSPI2.beginSPI()) {
-    Serial.println("SPI IMU #2 (Pin D7) initialization successful!");
+  // Initialize first SPI IMU
+  if (imu_spi1.beginSPI()) {
+    Serial.println("SPI IMU 1 (CS_PIN_1) initialized successfully.");
+    imu_spi1.setAccelRange(RANGE_4G);
+    imu_spi1.setGyroRange(RANGE_1000DPS);
+    Serial.println("SPI IMU 1 ranges set to 4G and 1000dps.");
   } else {
-    Serial.println("SPI IMU #2 (Pin D7) initialization failed. Check wiring.");
+    Serial.println("SPI IMU 1 (CS_PIN_1) initialization failed!");
   }
-  Serial.println("----------------------------------------\n");
+
+  // Initialize second SPI IMU
+  if (imu_spi2.beginSPI()) {
+    Serial.println("SPI IMU 2 (CS_PIN_2) initialized successfully.");
+    imu_spi2.setAccelRange(RANGE_4G);
+    imu_spi2.setGyroRange(RANGE_1000DPS);
+    Serial.println("SPI IMU 2 ranges set to 4G and 1000dps.");
+  } else {
+    Serial.println("SPI IMU 2 (CS_PIN_2) initialization failed!");
+  }
+
+  Serial.println("\nStarting sensor readings...");
 }
 
 void loop() {
-  // Read and print data from the I2C sensor
-  Serial.println("--- I2C Sensor Data ---");
-  if (imuI2C.readSensor()) {
-    printSensorData(imuI2C);
-  } else {
-    Serial.println("Failed to read from I2C sensor.");
+  // Read and print data from I2C IMU
+  if (imu_i2c.readSensor()) {
+    Serial.println("--- I2C IMU (0x69) ---");
+    printSensorData(imu_i2c);
   }
 
-  // Read and print data from the first SPI sensor
-  Serial.println("\n--- SPI Sensor #1 (D3) Data ---");
-  if (imuSPI1.readSensor()) {
-    printSensorData(imuSPI1);
-  } else {
-    Serial.println("Failed to read from SPI sensor #1.");
+  // Read and print data from first SPI IMU
+  if (imu_spi1.readSensor()) {
+    Serial.println("--- SPI IMU 1 (CS D3) ---");
+    printSensorData(imu_spi1);
   }
 
-  // Read and print data from the second SPI sensor
-  Serial.println("\n--- SPI Sensor #2 (D7) Data ---");
-  if (imuSPI2.readSensor()) {
-    printSensorData(imuSPI2);
-  } else {
-    Serial.println("Failed to read from SPI sensor #2.");
+  // Read and print data from second SPI IMU
+  if (imu_spi2.readSensor()) {
+    Serial.println("--- SPI IMU 2 (CS D7) ---");
+    printSensorData(imu_spi2);
   }
 
-  Serial.println("\n========================================");
-  
-  delay(100); 
+  delay(1000); 
 }
 
 
-void printSensorData(BMI120 &imu) {
-  Serial.print(" Accel: X=");
-  Serial.print(imu.ax_mps2, 2);
-  Serial.print(" Y=");
-  Serial.print(imu.ay_mps2, 2);
-  Serial.print(" Z=");
-  Serial.print(imu.az_mps2, 2);
-  Serial.println(" m/s^2");
+void printSensorData(BMI120 &sensor) {
+  Serial.print("  Accel: ");
+  Serial.print(sensor.ax_mps2, 2); Serial.print(", ");
+  Serial.print(sensor.ay_mps2, 2); Serial.print(", ");
+  Serial.println(sensor.az_mps2, 2);
 
-  Serial.print(" Gyro:  X=");
-  Serial.print(imu.gx_dps, 2);
-  Serial.print(" Y=");
-  Serial.print(imu.gy_dps, 2);
-  Serial.print(" Z=");
-  Serial.print(imu.gz_dps, 2);
-  Serial.println(" dps");
+  Serial.print("  Gyro:  ");
+  Serial.print(sensor.gx_dps, 2); Serial.print(", ");
+  Serial.print(sensor.gy_dps, 2); Serial.print(", ");
+  Serial.println(sensor.gz_dps, 2);
+  Serial.println();
 }
